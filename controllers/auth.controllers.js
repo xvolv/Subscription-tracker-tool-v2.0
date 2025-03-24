@@ -10,9 +10,12 @@ export const signUp = async (req, res, next) => {
   session.startTransaction();
   try {
     const { name, email, password } = req.body;
+    console.log(req.body);
 
     // Check if the user already exists (must use session)
-    const existingUser = await User.findOne({ email }, null, { session });
+    const existingUser = await User.findOne({ email }, null, {
+      session: session,
+    });
     if (existingUser) {
       return next(new customeError("USER ALREADY EXISTS, PLEASE LOGIN", 409));
     }
@@ -22,16 +25,18 @@ export const signUp = async (req, res, next) => {
 
     // Create new user inside the transaction
     const newUser = await User.create(
-      {
-        name,
-        email,
-        password: hashedPassword,
-      },
-      { session }
+      [
+        {
+          name,
+          email,
+          password: hashedPassword,
+        },
+      ],
+      { session: session } // Correct place for the session option
     );
 
     // Generate token
-    const token = jwt.sign({ userId: newUser._id }, JWT_SECRET, {
+    const token = jwt.sign({ userId: newUser[0]._id }, JWT_SECRET, {
       expiresIn: JWT_EXPIRES_IN,
     });
 
@@ -43,7 +48,8 @@ export const signUp = async (req, res, next) => {
       token: token,
     });
   } catch (error) {
-    await session.abortTransaction(); // Abort transaction on error
+    await session.abortTransaction(); //  Abort transaction on error
+    console.error(error); // Log the error for detailed information
     next(error);
   } finally {
     session.endSession();

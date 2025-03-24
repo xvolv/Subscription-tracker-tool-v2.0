@@ -5,4 +5,4 @@ config({
   path: `.env.${process.env.NODE_ENV || "development"}.local`,
 });
 
-export const { NODE_ENV, PORT } = process.env;
+export const { NODE_ENV, PORT, DB_URI } = process.env;

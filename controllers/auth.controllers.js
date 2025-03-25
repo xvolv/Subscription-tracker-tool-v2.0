@@ -76,6 +76,7 @@ export const signIn = asyncErrorHandler(async (req, res, next) => {
   const token = jwt.sign({ userId: user._id }, JWT_SECRET, {
     expiresIn: JWT_EXPIRES_IN,
   });
+  user.password = undefined;
   res.status(200).json({
     success: true,
     user: user,
